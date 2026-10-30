@@ -17,6 +17,8 @@ AI-Crop-Disease-Diagnosis/
 │   ├── main.py          # FastAPI app, CORS configuration, root health response
 │   ├── config.py        # Environment-based backend settings
 │   ├── requirements.txt # Python backend dependencies
+│   ├── .env             # Local backend configuration (ignored by Git)
+│   ├── .gitignore       # Ignores local environment and temporary files
 │   ├── routes/
 │   │   ├── __init__.py
 │   │   └── diagnosis.py # Health and image-validation API endpoints
@@ -63,7 +65,7 @@ The page loads its fonts and crop photographs from external services, so those a
 
 ## Backend API
 
-The backend is a Python **FastAPI** application. The current `backend/requirements.txt` lists:
+The backend is a Python **FastAPI** application, compatible with Python 3.11 or newer. The current `backend/requirements.txt` lists:
 
 - `fastapi`
 - `uvicorn`
@@ -77,11 +79,13 @@ From a terminal, change to the `backend` directory, create and activate a Python
 
 ```powershell
 cd backend
-py -m venv .venv
+py -3.11 -m venv .venv
 .\.venv\Scripts\Activate.ps1
-py -m pip install -r requirements.txt
-py -m uvicorn main:app --reload
+python -m pip install -r requirements.txt
+python -m uvicorn main:app --reload
 ```
+
+If Python 3.11 is not installed, replace `-3.11` with an installed Python version that is 3.11 or newer. The included `.env` contains local development defaults; it is ignored by Git. Adjust `CORS_ORIGINS` if your static frontend server uses a different address.
 
 The development server uses `http://127.0.0.1:8000` by default. FastAPI's interactive API documentation is available at `http://127.0.0.1:8000/docs`.
 
