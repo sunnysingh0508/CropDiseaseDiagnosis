@@ -1,0 +1,13 @@
+# Environment configuration may contain local secrets.
+.env
+
+# Python bytecode and virtual environments.
+__pycache__/
+*.py[cod]
+.venv/
+
+# Temporary uploaded files and scratch directories.
+uploads/
+temp_uploads/
+*.upload
+*.tmp
