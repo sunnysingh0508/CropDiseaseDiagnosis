@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Choose a crop and upload a leaf image to explore the CropCare AI diagnosis experience."
+    />
+    <meta name="theme-color" content="#f7faf5" />
+    <title>Crop Diagnosis — CropCare AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="upload.css" />
+    <script src="upload.js" defer></script>
+  </head>
+  <body class="upload-page">
+    <header class="site-header">
+      <nav class="navbar container" aria-label="Main navigation">
+        <a class="brand" href="index.html#home" aria-label="CropCare AI home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 32 32" fill="none">
+              <path d="M25.8 5.7C16 5.8 8.6 8.2 7.1 15.1c-.8 3.9 1.8 6.7 5.4 6.1 7.9-1.3 12.1-9.4 13.3-15.5Z" fill="currentColor" />
+              <path d="M5.5 26.3c3.4-7.3 8-11.4 14.2-15.2" stroke="#fff" stroke-width="2" stroke-linecap="round" />
+              <path d="M7.4 15.3c-1.2-1.6-2.8-2.5-4.8-2.8.2 3.5 1.6 5.9 4.4 7.2" fill="currentColor" />
+            </svg>
+          </span>
+          <span>CropCare <strong>AI</strong></span>
+        </a>
+        <button
+          class="menu-toggle"
+          type="button"
+          aria-label="Open navigation menu"
+          aria-expanded="false"
+          aria-controls="upload-menu"
+        >
+          <span></span><span></span><span></span>
+        </button>
+        <div class="nav-menu" id="upload-menu">
+          <a href="index.html#home">Home</a>
+          <a href="index.html#how-it-works">How It Works</a>
+          <a href="index.html#about">About</a>
+          <a class="button button-small button-primary nav-cta" href="index.html">Back to Home <span aria-hidden="true">↗</span></a>
+        </div>
+      </nav>
+    </header>
+
+    <main>
+      <section class="upload-intro">
+        <div class="container">
+          <a class="upload-back-link" href="index.html"><span aria-hidden="true">←</span> Back to home</a>
+          <div class="upload-heading">
+            <span class="section-kicker">A healthier growing season starts here</span>
+            <h1>Let's diagnose <span>your crop.</span></h1>
+            <p>Upload a clear image of your crop leaf to check for possible diseases.</p>
+          </div>
+          <div class="upload-progress" aria-label="Diagnosis preparation steps">
+            <span class="progress-step is-current"><span>01</span> Choose crop</span>
+            <span class="progress-line"></span>
+            <span class="progress-step"><span>02</span> Add image</span>
+            <span class="progress-line"></span>
+            <span class="progress-step"><span>03</span> Review</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="upload-workspace">
+        <div class="container workspace-grid">
+          <div class="upload-main-column">
+            <section class="upload-panel crop-panel" aria-labelledby="crop-heading">
+              <div class="panel-heading">
+                <div class="panel-step">01</div>
+                <div>
+                  <h2 id="crop-heading">What are you growing?</h2>
+                  <p>Select the crop you'd like to check.</p>
+                </div>
+                <span class="optional-note">REQUIRED</span>
+              </div>
+              <div class="crop-select-grid" role="group" aria-labelledby="crop-heading">
+                <button class="crop-option" type="button" data-crop="Tomato" aria-pressed="false">
+                  <img src="https://images.unsplash.com/photo-1546094096-0df4bcaaa337?auto=format&amp;fit=crop&amp;w=240&amp;q=75" alt="" />
+                  <span>Tomato</span><span class="crop-check" aria-hidden="true">✓</span>
+                </button>
+                <button class="crop-option" type="button" data-crop="Potato" aria-pressed="false">
+                  <img src="https://images.unsplash.com/photo-1518977676601-b53f82aba655?auto=format&amp;fit=crop&amp;w=240&amp;q=75" alt="" />
+                  <span>Potato</span><span class="crop-check" aria-hidden="true">✓</span>
+                </button>
+                <button class="crop-option" type="button" data-crop="Apple" aria-pressed="false">
+                  <img src="https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?auto=format&amp;fit=crop&amp;w=240&amp;q=75" alt="" />
+                  <span>Apple</span><span class="crop-check" aria-hidden="true">✓</span>
+                </button>
+                <button class="crop-option" type="button" data-crop="Grape" aria-pressed="false">
+                  <img src="https://images.unsplash.com/photo-1537640538966-79f369143f8f?auto=format&amp;fit=crop&amp;w=240&amp;q=75" alt="" />
+                  <span>Grape</span><span class="crop-check" aria-hidden="true">✓</span>
+                </button>
+                <button class="crop-option" type="button" data-crop="Corn" aria-pressed="false">
+                  <img src="https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&amp;fit=crop&amp;w=240&amp;q=75" alt="" />
+                  <span>Corn</span><span class="crop-check" aria-hidden="true">✓</span>
+                </button>
+                <button class="crop-option" type="button" data-crop="Bell Pepper" aria-pressed="false">
+                  <img src="https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?auto=format&amp;fit=crop&amp;w=240&amp;q=75" alt="" />
+                  <span>Bell Pepper</span><span class="crop-check" aria-hidden="true">✓</span>
+                </button>
+              </div>
+              <p class="field-error" id="crop-error" aria-live="polite"></p>
+            </section>
+
+            <section class="upload-panel image-panel" aria-labelledby="image-heading">
+              <div class="panel-heading">
+                <div class="panel-step">02</div>
+                <div>
+                  <h2 id="image-heading">Add a leaf image</h2>
+                  <p>Choose a clear, well-lit photo for the best experience.</p>
+                </div>
+                <span class="optional-note">REQUIRED</span>
+              </div>
+
+              <div class="drop-zone" id="drop-zone" role="button" tabindex="0" aria-label="Choose or drop a crop leaf image">
+                <input
+                  class="file-input"
+                  id="image-input"
+                  type="file"
+                  accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                  aria-label="Choose a crop leaf image"
+                />
+                <div class="drop-content" id="drop-content">
+                  <div class="upload-icon" aria-hidden="true">
+                    <svg viewBox="0 0 32 32" fill="none">
+                      <path d="M16 21V5m0 0-6 6m6-6 6 6M6 20v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                  </div>
+                  <h3>Upload your leaf image</h3>
+                  <p>Drag and drop your image here or <span>browse files</span>.</p>
+                  <div class="format-chips" aria-label="Supported image formats">
+                    <span>JPG</span><span>JPEG</span><span>PNG</span><span>WEBP</span>
+                  </div>
+                  <small>Maximum file size: 10 MB</small>
+                </div>
+                <div class="image-preview" id="image-preview" hidden>
+                  <img id="preview-image" alt="Preview of the selected crop leaf image" />
+                  <div class="preview-info">
+                    <div class="preview-file-icon" aria-hidden="true">IMG</div>
+                    <div class="preview-file-text"><strong id="preview-name"></strong><span id="preview-size"></span></div>
+                    <button class="remove-image" id="remove-image" type="button">Remove image</button>
+                    <button class="button button-secondary change-image" id="change-image" type="button">Change image</button>
+                  </div>
+                </div>
+              </div>
+              <p class="field-error" id="image-error" aria-live="polite"></p>
+              <p class="upload-feedback" id="upload-feedback" aria-live="polite"></p>
+            </section>
+
+            <div class="analyze-area">
+              <button class="button button-primary analyze-button" id="analyze-button" type="button">
+                Analyze Crop Disease <span aria-hidden="true">↗</span>
+              </button>
+              <p>Your image stays on this page. Diagnosis is not yet available.</p>
+              <div class="diagnosis-message" id="diagnosis-message" role="status" aria-live="polite" hidden>
+                <span aria-hidden="true">✦</span>
+                <p>AI diagnosis integration coming soon.</p>
+              </div>
+            </div>
+          </div>
+
+          <aside class="guidance-column">
+            <section class="guidance-card" aria-labelledby="guidelines-heading">
+              <div class="guidance-heading">
+                <span class="guidance-icon" aria-hidden="true">✦</span>
+                <div><span class="section-kicker">A few helpful tips</span><h2 id="guidelines-heading">Get a clearer picture.</h2></div>
+              </div>
+              <ul class="guideline-list">
+                <li><span class="guideline-check" aria-hidden="true">✓</span><span><strong>Choose good lighting</strong><small>Natural daylight helps show leaf details.</small></span></li>
+                <li><span class="guideline-check" aria-hidden="true">✓</span><span><strong>Keep the leaf in focus</strong><small>Make sure the leaf is clearly visible.</small></span></li>
+                <li><span class="guideline-check" aria-hidden="true">✓</span><span><strong>Avoid blurry images</strong><small>Hold your camera steady when taking a photo.</small></span></li>
+                <li><span class="guideline-check" aria-hidden="true">✓</span><span><strong>Use a single leaf</strong><small>A simple background can make details easier to see.</small></span></li>
+                <li><span class="guideline-check" aria-hidden="true">✓</span><span><strong>Capture both sides if needed</strong><small>Visible details may appear on either side.</small></span></li>
+              </ul>
+              <div class="privacy-note"><span aria-hidden="true">♧</span><span><strong>Your privacy matters</strong><small>This preview does not upload images to a server.</small></span></div>
+            </section>
+            <div class="expert-note"><span class="expert-mark" aria-hidden="true">i</span><p>AI tools can support observations, but they don't replace a qualified agricultural expert.</p></div>
+          </aside>
+        </div>
+      </section>
+    </main>
+
+    <footer class="upload-footer">
+      <div class="container"><a class="brand brand-footer" href="index.html#home"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none"><path d="M25.8 5.7C16 5.8 8.6 8.2 7.1 15.1c-.8 3.9 1.8 6.7 5.4 6.1 7.9-1.3 12.1-9.4 13.3-15.5Z" fill="currentColor"/><path d="M5.5 26.3c3.4-7.3 8-11.4 14.2-15.2" stroke="#fff" stroke-width="2" stroke-linecap="round"/><path d="M7.4 15.3c-1.2-1.6-2.8-2.5-4.8-2.8.2 3.5 1.6 5.9 4.4 7.2" fill="currentColor"/></svg></span><span>CropCare <strong>AI</strong></span></a><span>© 2026 CropCare AI. Grown with care.</span></div>
+    </footer>
+  </body>
+</html>
