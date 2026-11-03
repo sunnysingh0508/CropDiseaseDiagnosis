@@ -1,0 +1,13 @@
+{
+  "seed": 42,
+  "epochs": 30,
+  "batch_size": 32,
+  "learning_rate": 0.001,
+  "image_size": [224, 224],
+  "class_count": 15,
+  "dropout_rate": 0.3,
+  "pretrained_weights": "imagenet",
+  "early_stopping_patience": 5,
+  "reduce_lr_patience": 2,
+  "minimum_learning_rate": 0.000001
+}

@@ -1,1 +1,1 @@
-"""Service modules for future application logic."""
+"""Reusable backend services."""

@@ -24,7 +24,19 @@ AI-Crop-Disease-Diagnosis/
 │   │   └── diagnosis.py # Health and image-validation API endpoints
 │   └── services/
 │       └── __init__.py  # Placeholder for backend services
-├── dataset/             # Reserved for crop image datasets
+├── scripts/
+│   ├── inspect_dataset.py          # Read-only PlantVillage inspection
+│   ├── prepare_dataset.py          # Deduplicate and create stratified manifests
+│   ├── verify_preprocessing.py     # Verify manifests and MobileNetV2 inputs
+│   ├── train_model.py              # Explicit opt-in MobileNetV2 training script
+│   ├── training_config.json        # Seed, epochs, batch size, learning rate, etc.
+│   ├── requirements-preprocessing.txt
+│   └── requirements-training.txt   # Stable TensorFlow training environment
+├── notebooks/
+│   └── cropcare_mobilenetv2_training.ipynb # Google Colab GPU training workflow
+├── dataset/
+│   ├── raw/             # Original dataset; preprocessing never modifies it
+│   └── processed/       # Generated manifests, class metadata, and report
 ├── model/               # Reserved for a future trained AI model
 └── README.md
 ```
@@ -122,6 +134,50 @@ The static upload page currently validates and previews images in the browser on
 - The frontend is not yet connected to the backend.
 - No disease-detection model or real AI diagnosis is implemented.
 - `dataset/` and `model/` are reserved for future data and model work.
+
+### Prepare and verify PlantVillage data (no model training)
+
+Install the preprocessing dependencies into a Python virtual environment:
+
+```powershell
+python -m pip install -r scripts\requirements-preprocessing.txt
+```
+
+Create reproducible, deduplicated train/validation/test manifests and training-only class weights:
+
+```powershell
+python scripts\prepare_dataset.py
+python scripts\verify_preprocessing.py
+```
+
+The scripts discover classes from `dataset/raw/PlantVillage`, preserve original image files, and write metadata only under `dataset/processed/`. Split assignments use random seed `42`; exact duplicate images are represented once. The verification script checks the manifests and TensorFlow MobileNetV2 preprocessing but does not train a model.
+
+### Prepare the local MobileNetV2 environment (do not train locally)
+
+The stable local training environment uses Python 3.13 and TensorFlow `2.21.0`. On native Windows, TensorFlow 2.11 and newer does not use NVIDIA CUDA GPUs. Use the Colab notebook below for GPU training; do not start a long training run on the local CPU.
+
+```powershell
+py -3.13 -m venv .venv-training
+.\.venv-training\Scripts\Activate.ps1
+python -m pip install -r scripts\requirements-training.txt
+python scripts\train_model.py
+```
+
+The final command only checks the environment and manifests. It does not build or train a model. Training requires an explicit `--train` option; do not use it for Colab preparation.
+
+### Train MobileNetV2 in Google Colab
+
+The notebook at `notebooks/cropcare_mobilenetv2_training.ipynb` trains on a Colab GPU, using the existing training and validation manifests, class mapping, training-only class weights, and `scripts/training_config.json`. It checks that a GPU is available and stops with an explanation if the runtime has none. It does not load the test manifest or modify the dataset.
+
+1. In Google Drive, use the project root `/content/drive/MyDrive/CropCare-AI` and place the raw class folders under `dataset/raw/PlantVillage/PlantVillage/`. Copy `scripts/training_config.json` and only these processed files: `train_manifest.csv`, `validation_manifest.csv`, `class_mapping.json`, and `class_weights.json`. Preserve their directory structure and do not copy or open the test manifest.
+2. Upload `notebooks/cropcare_mobilenetv2_training.ipynb` to Google Colab and open it.
+3. In Colab, select **Runtime > Change runtime type > T4 GPU** (or another available GPU), then save the setting. GPU availability varies; the notebook verifies the selected runtime before training.
+4. Run the Drive setup cell and authorize Drive. The notebook uses the exact project and raw-data paths above. Run the training-input preflight first; it checks class folders, original-versus-Drive image counts, every training/validation image path, and duplicate hashes. It stops on missing images or mismatched counts.
+5. Review the reported resolved counts (14,436 training and 3,094 validation), class mapping, and training configuration. Run the GPU check and training cell only after the preflight succeeds and you are ready to train.
+6. The notebook saves `best_model.keras`, `class_mapping.json`, `training_history.json`, and per-epoch `training_history.csv` under `model/training/` in the Drive project folder. It prints the actual completed epochs and best validation metrics.
+7. Run the export cell to create and download `cropcare_mobilenetv2_artifacts.zip`, containing the best model, mapping, config, and history. Keep the Colab session open until the download completes.
+
+The notebook uses ImageNet MobileNetV2 with the base frozen and the configured batch size, epoch limit, and callbacks. Early stopping may finish before the maximum epoch count. No training metrics are assumed in advance; they are reported only after a completed run. The test split remains reserved for a separately planned evaluation.
 
 ## Important note
 

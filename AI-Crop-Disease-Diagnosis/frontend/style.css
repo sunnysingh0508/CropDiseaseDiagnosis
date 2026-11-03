@@ -47,7 +47,7 @@ button { font: inherit; }
 .hero-grid { position: relative; z-index: 1; display: grid; min-height: 540px; grid-template-columns: 1fr 1.04fr; align-items: center; gap: 65px; }
 .eyebrow, .section-kicker { color: var(--green); font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; }
 .eyebrow { display: inline-flex; align-items: center; gap: 9px; padding: 10px 13px; border: 1px solid #dfeadd; border-radius: 30px; background: #fff; }
-.eyebrow-dot, .caption-pulse, .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #72b653; }
+.eyebrow-dot { width: 7px; height: 7px; border-radius: 50%; background: #72b653; }
 .eyebrow-dot { box-shadow: 0 0 0 4px #eff7eb; }
 h1, h2, h3, p { margin-top: 0; }
 .hero h1 { max-width: 560px; margin: 25px 0 18px; color: var(--forest); font: 800 clamp(43px, 5vw, 66px)/1.08 var(--font-display); letter-spacing: -3.4px; }
@@ -62,21 +62,6 @@ h1, h2, h3, p { margin-top: 0; }
 .image-shade { position: absolute; inset: 0; background: linear-gradient(180deg,rgba(16,44,28,.04) 42%,rgba(13,43,27,.56)); }
 .image-caption { position: absolute; right: 24px; bottom: 23px; left: 24px; display: flex; align-items: center; gap: 9px; color: #fff; font-size: 12px; font-weight: 600; }
 .caption-pulse { background: #9dde70; box-shadow: 0 0 0 4px rgba(157,222,112,.2); }
-.diagnosis-float { position: absolute; right: -4px; bottom: 1px; width: 295px; padding: 18px; border: 1px solid rgba(228,237,226,.9); border-radius: 13px; background: #fff; box-shadow: 0 17px 45px rgba(33,67,43,.15); }
-.diagnosis-topline, .diagnosis-result { display: flex; align-items: center; }
-.diagnosis-icon { display: grid; width: 34px; height: 34px; margin-right: 11px; place-items: center; border-radius: 10px; background: #edf5e9; color: var(--green); }
-.diagnosis-topline div, .diagnosis-result div { display: grid; gap: 3px; }
-.diagnosis-topline strong, .diagnosis-result strong { color: var(--forest); font-size: 11px; }
-.diagnosis-topline small, .diagnosis-result small { color: #89968e; font-size: 10px; }
-.status-dot { width: 8px; height: 8px; margin-left: auto; }
-.diagnosis-divider { height: 1px; margin: 14px 0; background: #edf0ec; }
-.result-leaf { display: grid; width: 35px; height: 35px; margin-right: 11px; place-items: center; border-radius: 50%; background: #edf6e9; color: #5d9c44; font-size: 17px; }
-.result-arrow { margin-left: auto; color: #81a17f; }
-.floating-note { position: absolute; top: 43px; left: -19px; display: flex; align-items: center; gap: 10px; padding: 12px 16px; border: 1px solid rgba(229,237,227,.9); border-radius: 9px; background: #fff; box-shadow: 0 10px 28px rgba(33,67,43,.1); }
-.note-sparkle { display: grid; width: 29px; height: 29px; place-items: center; border-radius: 50%; background: #f1f7ed; color: #7cae54; }
-.floating-note > span:last-child { display: grid; gap: 3px; }
-.floating-note strong { color: var(--forest); font-size: 10px; }
-.floating-note small { color: #8a968e; font-size: 9px; }
 .scan-mark { position: absolute; width: 31px; height: 31px; border-color: rgba(255,255,255,.9); border-style: solid; }
 .scan-mark-one { top: 36px; right: 43px; border-width: 1px 1px 0 0; }
 .scan-mark-two { bottom: 62px; left: 37px; border-width: 0 0 1px 1px; }
@@ -210,7 +195,7 @@ h1, h2, h3, p { margin-top: 0; }
   .hero-grid { gap: 33px; }
   .hero h1 { font-size: 55px; }
   .hero-image-wrap { height: 390px; }
-  .floating-note { left: -5px; }
+
   .demo-grid, .about-grid { gap: 55px; }
 }
 @media (max-width: 760px) {
@@ -231,8 +216,8 @@ h1, h2, h3, p { margin-top: 0; }
   .hero-description { max-width: 560px; }
   .hero-visual { width: min(100%, 590px); margin-inline: auto; padding: 10px 10px 35px; }
   .hero-image-wrap { height: clamp(300px, 64vw, 420px); }
-  .floating-note { left: 0; }
-  .diagnosis-float { right: 0; }
+
+
   .hero-bottom { padding-top: 27px; }
   .steps-grid { grid-template-columns: 1fr; gap: 12px; }
   .step-card { min-height: 230px; }
@@ -258,8 +243,6 @@ h1, h2, h3, p { margin-top: 0; }
   .hero-note { margin-top: 19px; }
   .hero-visual { padding-inline: 3px; }
   .hero-image-wrap { height: 300px; border-top-right-radius: 55px; }
-  .diagnosis-float { right: -2px; bottom: 0; width: min(278px, 90%); padding: 14px; }
-  .floating-note { top: 26px; left: -4px; padding: 10px; }
   .hero-bottom { gap: 9px; font-size: 7px; letter-spacing: 1px; }
   .hero-bottom-line { width: 20px; }
   .section-heading { margin-bottom: 31px; }

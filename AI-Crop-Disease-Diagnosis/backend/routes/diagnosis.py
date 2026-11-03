@@ -35,7 +35,10 @@ async def diagnose_crop(
     if normalized_crop_name not in SUPPORTED_CROPS:
         raise HTTPException(
             status_code=400,
-            detail="Select a supported crop: Tomato, Potato, Apple, Grape, Corn, or Bell Pepper.",
+            detail=(
+                "Select a supported crop: Tomato, Potato, Apple, Grape, "
+                "Corn, or Bell Pepper."
+            ),
         )
 
     if not image.filename:
@@ -60,13 +63,20 @@ async def diagnose_crop(
                     allowed_formats = ", ".join(sorted(settings.allowed_image_formats))
                     raise HTTPException(
                         status_code=415,
-                        detail=f"Unsupported image format. Allowed formats: {allowed_formats}.",
+                        detail=(
+                            "Unsupported image format. "
+                            f"Allowed formats: {allowed_formats}."
+                        ),
                     )
 
                 uploaded_image.verify()
         except HTTPException:
             raise
-        except (UnidentifiedImageError, OSError, Image.DecompressionBombError) as exc:
+        except (
+            UnidentifiedImageError,
+            OSError,
+            Image.DecompressionBombError,
+        ) as exc:
             raise HTTPException(
                 status_code=400,
                 detail="The uploaded file is not a valid, readable image.",
