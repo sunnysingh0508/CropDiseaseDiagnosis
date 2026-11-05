@@ -130,6 +130,215 @@ Backend settings can be supplied through environment variables or a `backend/.en
 
 The response includes the predicted class, its confidence percentage, the top three class scores, and a `healthy` or `diseased` status. Input images are converted to RGB, resized to 224x224 with TensorFlow's image resize operation, and processed with the same `tensorflow.keras.applications.mobilenet_v2.preprocess_input` function used during training. Predictions run only on the local trained model; no external AI service is used. The static upload page remains unconnected to the backend.
 
+## Dataset Information
+
+### Dataset Overview
+
+CropCare AI uses the **PlantVillage dataset** for training and developing its crop disease classification system.
+
+The dataset contains images of healthy and diseased plant leaves across 15 classification categories covering three crop groups:
+
+- Bell Pepper
+- Potato
+- Tomato
+
+The dataset is organised into class-specific directories, where each directory represents a particular crop disease or healthy condition.
+
+### Dataset Statistics
+
+| Specification | Value |
+|---|---:|
+| Dataset | PlantVillage |
+| Original source image files | 20,638 |
+| Unique readable images after deduplication | 20,624 |
+| Number of classification classes | 15 |
+| Corrupted images excluded | 0 |
+| Exact duplicate copies excluded | 14 |
+| Random seed | 42 |
+
+### Dataset Class Distribution
+
+The following counts represent the original dataset inspection, before duplicate removal.
+
+| Crop | Disease / Condition | Original Images |
+|---|---|---:|
+| Bell Pepper | Bacterial Spot | 997 |
+| Bell Pepper | Healthy | 1,478 |
+| Potato | Early Blight | 1,000 |
+| Potato | Healthy | 152 |
+| Potato | Late Blight | 1,000 |
+| Tomato | Target Spot | 1,404 |
+| Tomato | Mosaic Virus | 373 |
+| Tomato | Yellow Leaf Curl Virus | 3,208 |
+| Tomato | Bacterial Spot | 2,127 |
+| Tomato | Early Blight | 1,000 |
+| Tomato | Healthy | 1,591 |
+| Tomato | Late Blight | 1,909 |
+| Tomato | Leaf Mold | 952 |
+| Tomato | Septoria Leaf Spot | 1,771 |
+| Tomato | Spider Mites | 1,676 |
+
+### Dataset Splitting
+
+The dataset is divided into three subsets using a stratified splitting strategy and random seed `42`.
+
+| Dataset Split | Percentage | Images |
+|---|---:|---:|
+| Training | 70% | 14,436 |
+| Validation | 15% | 3,094 |
+| Testing | 15% | 3,094 |
+| **Total** | **100%** | **20,624** |
+
+- **Training set:** Used to train the classification model.
+- **Validation set:** Used to monitor model performance and support training decisions.
+- **Testing set:** Reserved for final evaluation on previously unseen images.
+
+The test dataset is kept separate from model training and validation to help prevent data leakage during model development.
+
+### Data Cleaning and Preprocessing
+
+The preprocessing pipeline performs the following operations:
+
+1. Scans the original PlantVillage class directories.
+2. Checks image readability and validates image content.
+3. Identifies exact duplicate images using SHA-256 hashes.
+4. Excludes 14 duplicate copies while retaining one representative image from each duplicate group.
+5. Ignores non-image files and preserves the original source images.
+6. Creates reproducible training, validation and testing manifests.
+7. Generates class mappings and class weights using training data only.
+
+### Generated Dataset Files
+
+The preprocessing scripts generate the following files under `dataset/processed/`:
+
+| File | Purpose |
+|---|---|
+| `train_manifest.csv` | Training image paths and labels |
+| `validation_manifest.csv` | Validation image paths and labels |
+| `test_manifest.csv` | Reserved testing image paths and labels |
+| `class_mapping.json` | Maps class names to numerical indices |
+| `class_weights.json` | Stores training-only class weights |
+| `preprocessing_report.txt` | Records dataset inspection and preprocessing information |
+
+### Dataset Limitations
+
+- The model is currently designed for 15 classes across Bell Pepper, Potato and Tomato.
+- Class distribution is uneven, with some categories containing considerably more images than others.
+- The dataset's performance may not represent real-world field conditions.
+- Exact duplicate removal does not eliminate all possible similarities between images.
+- The current preprocessing pipeline does not include random data augmentation.
+
+The reserved test dataset should be used for a separate final model evaluation after training.
+
+## Deep Learning Model — MobileNetV2
+
+### Model Overview
+
+CropCare AI uses **MobileNetV2**, a lightweight convolutional neural network (CNN), for crop disease classification.
+
+The project uses **Transfer Learning**, where a MobileNetV2 model pretrained on the ImageNet dataset serves as the feature extraction backbone. The original classification head is replaced with a custom classification head designed to recognise 15 crop disease and healthy-leaf categories.
+
+### Model Architecture
+
+The model consists of the following layers:
+
+| Layer | Purpose |
+|---|---|
+| Input Layer | Accepts RGB images of size 224 × 224 × 3 |
+| MobileNetV2 Backbone | Extracts visual features from leaf images |
+| Global Average Pooling 2D | Converts feature maps into a compact feature vector |
+| Dropout | Applies a dropout rate of 0.3 to help reduce overfitting |
+| Dense Output Layer | Produces predictions for 15 classes using Softmax activation |
+
+**Architecture flow:**
+
+```text
+Input Image (224 × 224 × 3)
+          |
+          v
+   MobileNetV2 Backbone
+   (ImageNet pretrained)
+   (Frozen feature extractor)
+          |
+          v
+Global Average Pooling 2D
+          |
+          v
+     Dropout (0.3)
+          |
+          v
+ Dense Layer (15 Units)
+   Softmax Activation
+          |
+          v
+   15-Class Prediction
+```
+
+### Model Specifications
+
+| Specification | Value |
+|---|---|
+| Model Architecture | MobileNetV2 |
+| Learning Approach | Transfer Learning |
+| Pretrained Weights | ImageNet |
+| Input Image Size | 224 × 224 pixels |
+| Input Channels | 3 (RGB) |
+| Number of Classes | 15 |
+| Total Parameters | 2,277,199 |
+| Trainable Parameters | 19,215 |
+| Non-trainable Parameters | 2,257,984 |
+| Dropout Rate | 0.3 |
+| Output Activation | Softmax |
+| Loss Function | Sparse Categorical Crossentropy |
+| Optimizer | Adam |
+
+### Image Preprocessing
+
+Before classification, the backend performs the following preprocessing operations:
+
+1. Validates the uploaded image.
+2. Converts the image into RGB format.
+3. Resizes it to 224 × 224 pixels.
+4. Converts the image into a TensorFlow-compatible numerical array.
+5. Applies MobileNetV2's `preprocess_input` function.
+6. Passes the processed image to the trained model.
+
+The same preprocessing approach is used during training and inference to maintain consistency.
+
+### Training Strategy
+
+The model uses a transfer-learning approach:
+
+- MobileNetV2 is initialised with ImageNet pretrained weights.
+- The pretrained backbone is frozen during training.
+- A custom classification head is trained for the 15 target classes.
+- Class weights are used to account for differences in class distribution.
+- EarlyStopping monitors validation loss.
+- ModelCheckpoint saves the best model based on validation loss.
+- ReduceLROnPlateau reduces the learning rate when validation performance stops improving.
+
+Training is designed to run in Google Colab using an available GPU.
+
+### Prediction and Classification
+
+The final Dense layer uses Softmax activation to generate a score for each of the 15 classes.
+
+The backend identifies the class with the highest output score and returns:
+
+- Predicted disease or healthy-leaf class.
+- Prediction score expressed as a percentage.
+- Top three predicted classes and their scores.
+- Classification status: `healthy` or `diseased`.
+
+**Note:** Softmax scores represent model outputs and should not automatically be interpreted as calibrated probabilities or guaranteed prediction accuracy.
+
+### Model Limitations
+
+- Predictions depend on image quality and similarity to the training dataset.
+- Performance on real-world field images may differ from performance on PlantVillage images.
+- The model is designed for the 15 classes included in its class mapping.
+- Predictions should not replace professional agricultural diagnosis.
+
 ## Current status and next steps
 
 - The landing page and upload page are implemented.
