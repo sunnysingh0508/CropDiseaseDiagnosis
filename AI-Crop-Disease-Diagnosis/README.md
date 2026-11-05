@@ -130,6 +130,115 @@ Backend settings can be supplied through environment variables or a `backend/.en
 
 The response includes the predicted class, its confidence percentage, the top three class scores, and a `healthy` or `diseased` status. Input images are converted to RGB, resized to 224x224 with TensorFlow's image resize operation, and processed with the same `tensorflow.keras.applications.mobilenet_v2.preprocess_input` function used during training. Predictions run only on the local trained model; no external AI service is used. The static upload page remains unconnected to the backend.
 
+## Deep Learning Model — MobileNetV2
+
+### Model Overview
+
+CropCare AI uses **MobileNetV2**, a lightweight convolutional neural network (CNN), for crop disease classification.
+
+The project uses **Transfer Learning**, where a MobileNetV2 model pretrained on the ImageNet dataset serves as the feature extraction backbone. The original classification head is replaced with a custom classification head designed to recognise 15 crop disease and healthy-leaf categories.
+
+### Model Architecture
+
+The model consists of the following layers:
+
+| Layer | Purpose |
+|---|---|
+| Input Layer | Accepts RGB images of size 224 × 224 × 3 |
+| MobileNetV2 Backbone | Extracts visual features from leaf images |
+| Global Average Pooling 2D | Converts feature maps into a compact feature vector |
+| Dropout | Applies a dropout rate of 0.3 to help reduce overfitting |
+| Dense Output Layer | Produces predictions for 15 classes using Softmax activation |
+
+**Architecture flow:**
+
+```text
+Input Image (224 × 224 × 3)
+          |
+          v
+   MobileNetV2 Backbone
+   (ImageNet pretrained)
+   (Frozen feature extractor)
+          |
+          v
+Global Average Pooling 2D
+          |
+          v
+     Dropout (0.3)
+          |
+          v
+ Dense Layer (15 Units)
+   Softmax Activation
+          |
+          v
+   15-Class Prediction
+```
+
+### Model Specifications
+
+| Specification | Value |
+|---|---|
+| Model Architecture | MobileNetV2 |
+| Learning Approach | Transfer Learning |
+| Pretrained Weights | ImageNet |
+| Input Image Size | 224 × 224 pixels |
+| Input Channels | 3 (RGB) |
+| Number of Classes | 15 |
+| Total Parameters | 2,277,199 |
+| Trainable Parameters | 19,215 |
+| Non-trainable Parameters | 2,257,984 |
+| Dropout Rate | 0.3 |
+| Output Activation | Softmax |
+| Loss Function | Sparse Categorical Crossentropy |
+| Optimizer | Adam |
+
+### Image Preprocessing
+
+Before classification, the backend performs the following preprocessing operations:
+
+1. Validates the uploaded image.
+2. Converts the image into RGB format.
+3. Resizes it to 224 × 224 pixels.
+4. Converts the image into a TensorFlow-compatible numerical array.
+5. Applies MobileNetV2's `preprocess_input` function.
+6. Passes the processed image to the trained model.
+
+The same preprocessing approach is used during training and inference to maintain consistency.
+
+### Training Strategy
+
+The model uses a transfer-learning approach:
+
+- MobileNetV2 is initialised with ImageNet pretrained weights.
+- The pretrained backbone is frozen during training.
+- A custom classification head is trained for the 15 target classes.
+- Class weights are used to account for differences in class distribution.
+- EarlyStopping monitors validation loss.
+- ModelCheckpoint saves the best model based on validation loss.
+- ReduceLROnPlateau reduces the learning rate when validation performance stops improving.
+
+Training is designed to run in Google Colab using an available GPU.
+
+### Prediction and Classification
+
+The final Dense layer uses Softmax activation to generate a score for each of the 15 classes.
+
+The backend identifies the class with the highest output score and returns:
+
+- Predicted disease or healthy-leaf class.
+- Prediction score expressed as a percentage.
+- Top three predicted classes and their scores.
+- Classification status: `healthy` or `diseased`.
+
+**Note:** Softmax scores represent model outputs and should not automatically be interpreted as calibrated probabilities or guaranteed prediction accuracy.
+
+### Model Limitations
+
+- Predictions depend on image quality and similarity to the training dataset.
+- Performance on real-world field images may differ from performance on PlantVillage images.
+- The model is designed for the 15 classes included in its class mapping.
+- Predictions should not replace professional agricultural diagnosis.
+
 ## Current status and next steps
 
 - The landing page and upload page are implemented.
