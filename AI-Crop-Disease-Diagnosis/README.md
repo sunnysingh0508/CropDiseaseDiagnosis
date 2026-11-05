@@ -130,6 +130,106 @@ Backend settings can be supplied through environment variables or a `backend/.en
 
 The response includes the predicted class, its confidence percentage, the top three class scores, and a `healthy` or `diseased` status. Input images are converted to RGB, resized to 224x224 with TensorFlow's image resize operation, and processed with the same `tensorflow.keras.applications.mobilenet_v2.preprocess_input` function used during training. Predictions run only on the local trained model; no external AI service is used. The static upload page remains unconnected to the backend.
 
+## Dataset Information
+
+### Dataset Overview
+
+CropCare AI uses the **PlantVillage dataset** for training and developing its crop disease classification system.
+
+The dataset contains images of healthy and diseased plant leaves across 15 classification categories covering three crop groups:
+
+- Bell Pepper
+- Potato
+- Tomato
+
+The dataset is organised into class-specific directories, where each directory represents a particular crop disease or healthy condition.
+
+### Dataset Statistics
+
+| Specification | Value |
+|---|---:|
+| Dataset | PlantVillage |
+| Original source image files | 20,638 |
+| Unique readable images after deduplication | 20,624 |
+| Number of classification classes | 15 |
+| Corrupted images excluded | 0 |
+| Exact duplicate copies excluded | 14 |
+| Random seed | 42 |
+
+### Dataset Class Distribution
+
+The following counts represent the original dataset inspection, before duplicate removal.
+
+| Crop | Disease / Condition | Original Images |
+|---|---|---:|
+| Bell Pepper | Bacterial Spot | 997 |
+| Bell Pepper | Healthy | 1,478 |
+| Potato | Early Blight | 1,000 |
+| Potato | Healthy | 152 |
+| Potato | Late Blight | 1,000 |
+| Tomato | Target Spot | 1,404 |
+| Tomato | Mosaic Virus | 373 |
+| Tomato | Yellow Leaf Curl Virus | 3,208 |
+| Tomato | Bacterial Spot | 2,127 |
+| Tomato | Early Blight | 1,000 |
+| Tomato | Healthy | 1,591 |
+| Tomato | Late Blight | 1,909 |
+| Tomato | Leaf Mold | 952 |
+| Tomato | Septoria Leaf Spot | 1,771 |
+| Tomato | Spider Mites | 1,676 |
+
+### Dataset Splitting
+
+The dataset is divided into three subsets using a stratified splitting strategy and random seed `42`.
+
+| Dataset Split | Percentage | Images |
+|---|---:|---:|
+| Training | 70% | 14,436 |
+| Validation | 15% | 3,094 |
+| Testing | 15% | 3,094 |
+| **Total** | **100%** | **20,624** |
+
+- **Training set:** Used to train the classification model.
+- **Validation set:** Used to monitor model performance and support training decisions.
+- **Testing set:** Reserved for final evaluation on previously unseen images.
+
+The test dataset is kept separate from model training and validation to help prevent data leakage during model development.
+
+### Data Cleaning and Preprocessing
+
+The preprocessing pipeline performs the following operations:
+
+1. Scans the original PlantVillage class directories.
+2. Checks image readability and validates image content.
+3. Identifies exact duplicate images using SHA-256 hashes.
+4. Excludes 14 duplicate copies while retaining one representative image from each duplicate group.
+5. Ignores non-image files and preserves the original source images.
+6. Creates reproducible training, validation and testing manifests.
+7. Generates class mappings and class weights using training data only.
+
+### Generated Dataset Files
+
+The preprocessing scripts generate the following files under `dataset/processed/`:
+
+| File | Purpose |
+|---|---|
+| `train_manifest.csv` | Training image paths and labels |
+| `validation_manifest.csv` | Validation image paths and labels |
+| `test_manifest.csv` | Reserved testing image paths and labels |
+| `class_mapping.json` | Maps class names to numerical indices |
+| `class_weights.json` | Stores training-only class weights |
+| `preprocessing_report.txt` | Records dataset inspection and preprocessing information |
+
+### Dataset Limitations
+
+- The model is currently designed for 15 classes across Bell Pepper, Potato and Tomato.
+- Class distribution is uneven, with some categories containing considerably more images than others.
+- The dataset's performance may not represent real-world field conditions.
+- Exact duplicate removal does not eliminate all possible similarities between images.
+- The current preprocessing pipeline does not include random data augmentation.
+
+The reserved test dataset should be used for a separate final model evaluation after training.
+
 ## Deep Learning Model — MobileNetV2
 
 ### Model Overview
