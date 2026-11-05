@@ -125,7 +125,7 @@
                   class="file-input"
                   id="image-input"
                   type="file"
-                  accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                  accept=".jpg,.jpeg,.png,image/jpeg,image/png"
                   aria-label="Choose a crop leaf image"
                 />
                 <div class="drop-content" id="drop-content">
@@ -137,7 +137,7 @@
                   <h3>Upload your leaf image</h3>
                   <p>Drag and drop your image here or <span>browse files</span>.</p>
                   <div class="format-chips" aria-label="Supported image formats">
-                    <span>JPG</span><span>JPEG</span><span>PNG</span><span>WEBP</span>
+                    <span>JPG</span><span>JPEG</span><span>PNG</span>
                   </div>
                   <small>Maximum file size: 10 MB</small>
                 </div>
@@ -157,13 +157,28 @@
 
             <div class="analyze-area">
               <button class="button button-primary analyze-button" id="analyze-button" type="button">
-                Analyze Crop Disease <span aria-hidden="true">↗</span>
+                <span id="analyze-button-label">Analyze Crop Disease</span>
+                <span id="analyze-spinner" class="loading-spinner" aria-hidden="true" hidden></span>
+                <span aria-hidden="true">↗</span>
               </button>
-              <p>Your image stays on this page. Diagnosis is not yet available.</p>
-              <div class="diagnosis-message" id="diagnosis-message" role="status" aria-live="polite" hidden>
-                <span aria-hidden="true">✦</span>
-                <p>AI diagnosis integration coming soon.</p>
+              <p>Your image will be sent securely to the CropCare AI diagnosis API for analysis.</p>
+              <p class="diagnosis-error" id="diagnosis-error" role="alert" aria-live="assertive" hidden></p>
+              <div class="diagnosis-loading" id="diagnosis-loading" role="status" aria-live="polite" hidden>
+                <span class="loading-spinner" aria-hidden="true"></span>
+                <span>Analyzing your image. This may take a few moments.</span>
               </div>
+              <section class="diagnosis-message" id="diagnosis-message" aria-live="polite" hidden>
+                <span aria-hidden="true">✦</span>
+                <div class="diagnosis-content">
+                  <h2 id="diagnosis-title"></h2>
+                  <p class="diagnosis-status" id="diagnosis-status"></p>
+                  <p class="diagnosis-confidence" id="diagnosis-confidence"></p>
+                  <div class="top-predictions">
+                    <h3>Top 3 predictions</h3>
+                    <ol id="top-predictions-list"></ol>
+                  </div>
+                </div>
+              </section>
             </div>
           </div>
 
@@ -180,7 +195,7 @@
                 <li><span class="guideline-check" aria-hidden="true">✓</span><span><strong>Use a single leaf</strong><small>A simple background can make details easier to see.</small></span></li>
                 <li><span class="guideline-check" aria-hidden="true">✓</span><span><strong>Capture both sides if needed</strong><small>Visible details may appear on either side.</small></span></li>
               </ul>
-              <div class="privacy-note"><span aria-hidden="true">♧</span><span><strong>Your privacy matters</strong><small>This preview does not upload images to a server.</small></span></div>
+              <div class="privacy-note"><span aria-hidden="true">♧</span><span><strong>Your privacy matters</strong><small>Your image is sent to the CropCare AI backend only when you request a diagnosis.</small></span></div>
             </section>
             <div class="expert-note"><span class="expert-mark" aria-hidden="true">i</span><p>AI tools can support observations, but they don't replace a qualified agricultural expert.</p></div>
           </aside>

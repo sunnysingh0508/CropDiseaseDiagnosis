@@ -50,7 +50,7 @@ def _load_settings() -> Settings:
         image_format.strip().upper()
         for image_format in os.getenv(
             "ALLOWED_IMAGE_FORMATS",
-            "JPEG,PNG,WEBP",
+            "JPEG,PNG",
         ).split(",")
         if image_format.strip()
     )

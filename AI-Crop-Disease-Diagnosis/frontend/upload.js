@@ -12,26 +12,56 @@ const uploadFeedback = document.querySelector("#upload-feedback");
 const removeImageButton = document.querySelector("#remove-image");
 const changeImageButton = document.querySelector("#change-image");
 const analyzeButton = document.querySelector("#analyze-button");
+const analyzeButtonLabel = document.querySelector("#analyze-button-label");
+const analyzeSpinner = document.querySelector("#analyze-spinner");
+const diagnosisError = document.querySelector("#diagnosis-error");
+const diagnosisLoading = document.querySelector("#diagnosis-loading");
 const diagnosisMessage = document.querySelector("#diagnosis-message");
+const diagnosisTitle = document.querySelector("#diagnosis-title");
+const diagnosisStatus = document.querySelector("#diagnosis-status");
+const diagnosisConfidence = document.querySelector("#diagnosis-confidence");
+const topPredictionsList = document.querySelector("#top-predictions-list");
 const menuToggle = document.querySelector(".menu-toggle");
 const navMenu = document.querySelector(".nav-menu");
 
-const allowedExtensions = new Set(["jpg", "jpeg", "png", "webp"]);
-const allowedMimeTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
+const diagnosisEndpoint = "http://127.0.0.1:8000/api/diagnose";
+const allowedExtensions = new Set(["jpg", "jpeg", "png"]);
+const allowedMimeTypes = new Set(["image/jpeg", "image/png"]);
 const maxFileSize = 10 * 1024 * 1024;
 let selectedCrop = "";
+let selectedImage = null;
 let previewUrl = "";
+let activeRequestController = null;
 
 function openFilePicker() {
   imageInput.click();
 }
 
+function clearDiagnosis() {
+  if (activeRequestController) {
+    activeRequestController.abort();
+    activeRequestController = null;
+  }
+
+  diagnosisLoading.hidden = true;
+  diagnosisMessage.hidden = true;
+  diagnosisMessage.removeAttribute("data-status");
+  diagnosisError.hidden = true;
+  diagnosisError.textContent = "";
+  analyzeButton.disabled = false;
+  analyzeButtonLabel.textContent = "Analyze Crop Disease";
+  analyzeSpinner.hidden = true;
+  topPredictionsList.replaceChildren();
+}
+
 function clearImage() {
+  clearDiagnosis();
   if (previewUrl) {
     URL.revokeObjectURL(previewUrl);
     previewUrl = "";
   }
 
+  selectedImage = null;
   imageInput.value = "";
   previewImage.removeAttribute("src");
   previewName.textContent = "";
@@ -40,7 +70,6 @@ function clearImage() {
   dropContent.hidden = false;
   imageError.textContent = "";
   uploadFeedback.textContent = "";
-  diagnosisMessage.hidden = true;
 }
 
 function formatFileSize(bytes) {
@@ -57,7 +86,7 @@ function validateFile(file) {
   const hasAllowedMimeType = !file.type || allowedMimeTypes.has(file.type);
 
   if (!hasAllowedExtension || !hasAllowedMimeType) {
-    return "Choose an image in JPG, JPEG, PNG, or WEBP format.";
+    return "Choose an image in JPG, JPEG, or PNG format.";
   }
 
   if (file.size > maxFileSize) {
@@ -73,17 +102,14 @@ function validateFile(file) {
 
 function showImage(file) {
   const validationMessage = validateFile(file);
-  diagnosisMessage.hidden = true;
-  uploadFeedback.textContent = "";
+  clearImage();
 
   if (validationMessage) {
-    clearImage();
     imageError.textContent = validationMessage;
     return;
   }
 
-  clearImage();
-  imageError.textContent = "";
+  selectedImage = file;
   previewUrl = URL.createObjectURL(file);
   previewImage.src = previewUrl;
   previewName.textContent = file.name;
@@ -93,6 +119,130 @@ function showImage(file) {
   uploadFeedback.textContent = "Image ready to review.";
 }
 
+function isValidConfidence(value) {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= 100;
+}
+
+function validateDiagnosisResponse(data) {
+  return (
+    data !== null &&
+    typeof data === "object" &&
+    typeof data.predicted_class === "string" &&
+    data.predicted_class.length > 0 &&
+    isValidConfidence(data.confidence_percentage) &&
+    (data.status === "healthy" || data.status === "diseased") &&
+    Array.isArray(data.top_3_predictions) &&
+    data.top_3_predictions.length === 3 &&
+    data.top_3_predictions.every(
+      (prediction) =>
+        prediction !== null &&
+        typeof prediction === "object" &&
+        typeof prediction.class_name === "string" &&
+        prediction.class_name.length > 0 &&
+        isValidConfidence(prediction.confidence_percentage),
+    )
+  );
+}
+
+function formatClassName(className) {
+  return className.replace(/_+/g, " ");
+}
+
+function renderDiagnosis(data) {
+  diagnosisTitle.textContent = formatClassName(data.predicted_class);
+  diagnosisStatus.textContent = `Status: ${data.status}`;
+  diagnosisConfidence.textContent = `Confidence: ${data.confidence_percentage.toFixed(2)}%`;
+  diagnosisMessage.dataset.status = data.status;
+  topPredictionsList.replaceChildren(
+    ...data.top_3_predictions.map((prediction) => {
+      const item = document.createElement("li");
+      item.textContent =
+        `${formatClassName(prediction.class_name)} — ` +
+        `${prediction.confidence_percentage.toFixed(2)}%`;
+      return item;
+    }),
+  );
+  diagnosisMessage.hidden = false;
+}
+
+async function readErrorMessage(response) {
+  let responseBody;
+  try {
+    responseBody = await response.json();
+  } catch {
+    return `Diagnosis failed (HTTP ${response.status}). Please try again.`;
+  }
+
+  if (typeof responseBody.detail === "string") {
+    return responseBody.detail;
+  }
+
+  return `Diagnosis failed (HTTP ${response.status}). Please try again.`;
+}
+
+async function analyzeImage() {
+  cropError.textContent = selectedCrop ? "" : "Please select a crop to continue.";
+  imageError.textContent = selectedImage ? "" : "Please upload a crop leaf image to continue.";
+  clearDiagnosis();
+
+  if (!selectedCrop || !selectedImage) {
+    return;
+  }
+
+  const controller = new AbortController();
+  activeRequestController = controller;
+  const formData = new FormData();
+  formData.append("image", selectedImage);
+
+  analyzeButton.disabled = true;
+  analyzeButtonLabel.textContent = "Analyzing...";
+  analyzeSpinner.hidden = false;
+  diagnosisLoading.hidden = false;
+
+  try {
+    const response = await fetch(diagnosisEndpoint, {
+      method: "POST",
+      body: formData,
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      throw new Error(await readErrorMessage(response));
+    }
+
+    let result;
+    try {
+      result = await response.json();
+    } catch {
+      throw new Error("The diagnosis service returned an unreadable response.");
+    }
+
+    if (!validateDiagnosisResponse(result)) {
+      throw new Error("The diagnosis service returned an unexpected response.");
+    }
+
+    renderDiagnosis(result);
+  } catch (error) {
+    if (error.name === "AbortError") {
+      return;
+    }
+
+    diagnosisError.textContent =
+      error instanceof TypeError
+        ? "Could not connect to the diagnosis service. Check that the FastAPI backend is running at 127.0.0.1:8000."
+        : error.message || "Diagnosis failed. Please try again.";
+    diagnosisError.hidden = false;
+  } finally {
+    if (activeRequestController === controller) {
+      activeRequestController = null;
+      diagnosisLoading.hidden = true;
+      analyzeButton.disabled = false;
+      analyzeButtonLabel.textContent = "Analyze Crop Disease";
+      analyzeSpinner.hidden = true;
+    }
+  }
+}
+
 cropOptions.forEach((option) => {
   option.addEventListener("click", () => {
     selectedCrop = option.dataset.crop;
@@ -100,7 +250,7 @@ cropOptions.forEach((option) => {
       cropOption.setAttribute("aria-pressed", String(cropOption === option));
     });
     cropError.textContent = "";
-    diagnosisMessage.hidden = true;
+    clearDiagnosis();
   });
 });
 
@@ -146,23 +296,11 @@ dropZone.addEventListener("drop", (event) => {
 });
 
 removeImageButton.addEventListener("click", clearImage);
-
 changeImageButton.addEventListener("click", () => {
   imageInput.value = "";
   openFilePicker();
 });
-
-analyzeButton.addEventListener("click", () => {
-  cropError.textContent = selectedCrop ? "" : "Please select a crop to continue.";
-  imageError.textContent = previewUrl ? "" : "Please upload a crop leaf image to continue.";
-  diagnosisMessage.hidden = true;
-
-  if (!selectedCrop || !previewUrl) {
-    return;
-  }
-
-  diagnosisMessage.hidden = false;
-});
+analyzeButton.addEventListener("click", analyzeImage);
 
 function closeMenu() {
   menuToggle.setAttribute("aria-expanded", "false");
@@ -188,6 +326,9 @@ document.addEventListener("keydown", (event) => {
 });
 
 window.addEventListener("beforeunload", () => {
+  if (activeRequestController) {
+    activeRequestController.abort();
+  }
   if (previewUrl) {
     URL.revokeObjectURL(previewUrl);
   }

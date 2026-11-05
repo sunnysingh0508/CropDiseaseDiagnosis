@@ -1,6 +1,6 @@
 # CropCare AI — AI Crop Disease Diagnosis System
 
-CropCare AI is a crop disease diagnosis project. The frontend currently provides a responsive project landing page and an interactive crop image upload experience. The backend provides API health checks and validates submitted crop images, but **AI model integration is pending**: it does not identify diseases or return real predictions.
+CropCare AI is a crop disease diagnosis project. The frontend currently provides a responsive project landing page and an interactive crop image upload experience. The FastAPI backend loads the trained MobileNetV2 classifier and exposes an image diagnosis endpoint; the static frontend is not connected to the backend yet.
 
 ## Project structure
 
@@ -21,9 +21,10 @@ AI-Crop-Disease-Diagnosis/
 │   ├── .gitignore       # Ignores local environment and temporary files
 │   ├── routes/
 │   │   ├── __init__.py
-│   │   └── diagnosis.py # Health and image-validation API endpoints
+│   │   └── diagnosis.py # Health and model-backed image diagnosis endpoints
 │   └── services/
-│       └── __init__.py  # Placeholder for backend services
+│       ├── __init__.py
+│       └── model_service.py # Model loading, preprocessing, and inference
 ├── scripts/
 │   ├── inspect_dataset.py          # Read-only PlantVillage inspection
 │   ├── prepare_dataset.py          # Deduplicate and create stratified manifests
@@ -37,7 +38,9 @@ AI-Crop-Disease-Diagnosis/
 ├── dataset/
 │   ├── raw/             # Original dataset; preprocessing never modifies it
 │   └── processed/       # Generated manifests, class metadata, and report
-├── model/               # Reserved for a future trained AI model
+├── model/
+│   └── training/
+│       └── best_model.keras # Trained 15-class classifier used by the backend
 └── README.md
 ```
 
@@ -77,13 +80,15 @@ The page loads its fonts and crop photographs from external services, so those a
 
 ## Backend API
 
-The backend is a Python **FastAPI** application, compatible with Python 3.11 or newer. The current `backend/requirements.txt` lists:
+The backend is a Python **FastAPI** application, compatible with Python 3.11–3.13. `backend/requirements.txt` includes TensorFlow 2.21.0 and NumPy for local model inference. The trained model must be present at `model/training/best_model.keras`; startup fails explicitly if the model or the 15-class mapping is missing or incompatible.
 
 - `fastapi`
 - `uvicorn`
 - `python-dotenv`
 - `python-multipart`
 - `pillow`
+- `numpy`
+- `tensorflow`
 
 ### Run the backend (optional)
 
@@ -107,12 +112,11 @@ The development server uses `http://127.0.0.1:8000` by default. FastAPI's intera
 |---|---|---|
 | `GET` | `/` | Confirms the backend is running. |
 | `GET` | `/api/health` | Reports that the diagnosis API is ready. |
-| `POST` | `/api/diagnose` | Accepts a crop name and image, validates the supported crop, file size, and image format, then returns a pending response. **No disease prediction is made.** |
+| `POST` | `/api/diagnose` | Accepts a JPEG or PNG image, validates its size and content, then returns model-backed predictions. |
 
 The `/api/diagnose` endpoint expects multipart form data with:
 
-- `crop_name`: Tomato, Potato, Apple, Grape, Corn, or Bell Pepper.
-- `image`: a valid JPEG, PNG, or WEBP image within the configured maximum size.
+- `image`: a valid JPG/JPEG or PNG leaf image no larger than 10 MB.
 
 ### Backend configuration
 
@@ -122,18 +126,17 @@ Backend settings can be supplied through environment variables or a `backend/.en
 |---|---|---|
 | `CORS_ORIGINS` | `http://127.0.0.1:5500,http://localhost:5500` | Comma-separated frontend origins allowed by CORS. |
 | `MAX_UPLOAD_SIZE_MB` | `10` | Maximum accepted image size in megabytes; must be a positive integer. |
-| `ALLOWED_IMAGE_FORMATS` | `JPEG,PNG,WEBP` | Comma-separated image formats accepted by the backend. |
+| `ALLOWED_IMAGE_FORMATS` | `JPEG,PNG` | Image formats accepted by the backend (restricted to JPEG and PNG). |
 
-The static upload page currently validates and previews images in the browser only; connecting its form to the backend remains a future integration step.
+The response includes the predicted class, its confidence percentage, the top three class scores, and a `healthy` or `diseased` status. Input images are converted to RGB, resized to 224x224 with TensorFlow's image resize operation, and processed with the same `tensorflow.keras.applications.mobilenet_v2.preprocess_input` function used during training. Predictions run only on the local trained model; no external AI service is used. The static upload page remains unconnected to the backend.
 
 ## Current status and next steps
 
 - The landing page and upload page are implemented.
 - Frontend crop selection, image preview, and input validation are implemented.
-- The backend API and image-validation endpoint are present.
+- The backend loads and validates the trained model and provides real model-backed predictions.
 - The frontend is not yet connected to the backend.
-- No disease-detection model or real AI diagnosis is implemented.
-- `dataset/` and `model/` are reserved for future data and model work.
+- The frontend still needs a separate integration to submit images and display API results.
 
 ### Prepare and verify PlantVillage data (no model training)
 

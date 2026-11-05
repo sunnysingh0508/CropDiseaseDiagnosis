@@ -3,3 +3,5 @@ uvicorn
 python-dotenv
 python-multipart
 pillow
+numpy>=1.26.0,<3
+tensorflow==2.21.0
